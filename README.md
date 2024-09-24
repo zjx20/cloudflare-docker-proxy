@@ -14,27 +14,24 @@
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ciiiii/cloudflare-docker-proxy)
 
-## Routes configuration tutorial
+## Deploy with wrangler
 
-1. use cloudflare worker host: only support proxy one registry
-   ```javascript
-   const routes = {
-     "${workername}.${username}.workers.dev/": "https://registry-1.docker.io",
-   };
-   ```
-2. use custom domain: support proxy multiple registries route by host
-   - host your domain DNS on cloudflare
-   - add `A` record of xxx.example.com to `192.0.2.1`
-   - deploy this project to cloudflare workers
-   - add `xxx.example.com/*` to HTTP routes of workers
-   - add more records and modify the config as you need
-   ```javascript
-   const routes = {
-     "docker.libcuda.so": "https://registry-1.docker.io",
-     "quay.libcuda.so": "https://quay.io",
-     "gcr.libcuda.so": "https://k8s.gcr.io",
-     "k8s-gcr.libcuda.so": "https://k8s.gcr.io",
-     "ghcr.libcuda.so": "https://ghcr.io",
-   };
-   ```
+```bash
+npm install
+npx wrangler deploy ./src/index.js -e production
+```
 
+## Routes
+
+The proxy routes requests to different registries base on the hostname of the request. For example, assume that your custom domain name is `mydomain.com`, requests to `https://docker.mydomain.com` will be proxied to `https://registry-1.docker.io`, and requests to `https://quay.mydomain.com` will be proxied to `https://quay.io`, etc.
+
+You should configure the "Workers Routes" in the Cloudflare console after deployment to make this happen. For example, add a route `*.mydomain.com/*` and one or more custom domains (e.g., `docker.mydomain.com`, `quay.mydomain.com`) to the worker.
+
+Mapping rules:
+* docker.\<your-domain-name\> => https://registry-1.docker.io
+* quay.\<your-domain-name\> => https://quay.io
+* gcr.\<your-domain-name\> => https://k8s.gcr.io
+* k8s-gcr.\<your-domain-name\> => https://k8s.gcr.io
+* ghcr.\<your-domain-name\> => https://ghcr.io
+* cloudsmith.\<your-domain-name\> => https://docker.cloudsmith.io
+* ecr.\<your-domain-name\> => https://public.ecr.aws
